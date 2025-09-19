@@ -2,36 +2,92 @@
 <html lang="en">
 
 <head>
+  <script>
+    // Apply theme from local storage
+    const theme = localStorage.getItem('theme');
+    if (theme === 'light') {
+      document.documentElement.classList.add('light');
+    }
+  </script>
   <meta charset="utf-8" />
   <title>Toro - Task Manager</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script>
+    const colors = {
+      'bg': 'var(--bg)',
+      'card': 'var(--card)',
+      'text': 'var(--text)',
+      'muted': 'var(--muted)',
+      'accent': 'var(--accent)',
+      'accent-hover': 'var(--accent-hover)',
+      'danger': 'var(--danger)',
+      'danger-hover': 'var(--danger-hover)',
+      'border': 'var(--border)',
+      'border-light': 'var(--border-light)',
+      'hover-bg': 'var(--hover-bg)',
+    }
+
     tailwind.config = {
       theme: {
         extend: {
-          colors: {
-            'bg': '#0f172a',
-            'card': '#111827',
-            'text': '#f1f5f9',
-            'muted': '#94a3b8',
-            'accent': '#3b82f6',
-            'accent-hover': '#2563eb',
-            'danger': '#ef4444',
-            'danger-hover': '#dc2626',
-            'border': '#1e293b',
-            'border-light': '#334155',
+          colors,
+          backgroundColor: {
+            ...colors,
+            DEFAULT: 'var(--bg)'
+          },
+          textColor: {
+            ...colors,
+            DEFAULT: 'var(--text)'
+          },
+          borderColor: {
+            ...colors,
+            DEFAULT: 'var(--border)'
           }
         }
       }
     }
   </script>
   <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --border: #1e293b;
+      --border-light: #334155;
+      --gradient-start: #0b1223;
+      --gradient-end: #0a0f1c;
+      --hover-bg: #1e293b;
+    }
+
+    html.light {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --danger: #dc2626;
+      --danger-hover: #b91c1c;
+      --border: #e2e8f0;
+      --border-light: #cbd5e1;
+      --gradient-start: #e0e8f9;
+      --gradient-end: #f0f4fc;
+      --hover-bg: #e2e8f0;
+    }
+
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, sans-serif;
-      background: linear-gradient(135deg, #0b1223 0%, #0f172a 50%, #0a0f1c 100%);
+      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--bg) 50%, var(--gradient-end) 100%);
       min-height: 100vh;
+      color: var(--text);
+      background-color: var(--bg);
     }
     
     @keyframes fadeIn {
@@ -49,9 +105,14 @@
 <body>
   <div class="max-w-2xl mx-auto my-16 px-5 md:my-16 my-5 md:px-5 px-4">
     <div class="bg-card border border-border rounded-2xl p-8 md:p-8 p-6 shadow-2xl backdrop-blur-sm animate-fade-in" role="application" aria-label="Todo app">
-      <header class="mb-8">
-        <h1 class="text-3xl font-bold mb-3 bg-gradient-to-r from-text to-muted bg-clip-text text-transparent">Toro</h1>
-        <div class="text-muted text-base leading-relaxed">Your personal task manager</div>
+      <header class="mb-8 flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl font-bold mb-3 bg-gradient-to-r from-text to-muted bg-clip-text text-transparent">Toro</h1>
+          <div class="text-muted text-base leading-relaxed">Your personal task manager</div>
+        </div>
+        <button id="theme-toggle" class="p-2 rounded-full hover:bg-hover-bg transition-colors">
+          <span class="text-2xl">🌙</span>
+        </button>
       </header>
 
       <section class="mb-6">
@@ -327,7 +388,21 @@
         }
       });
 
+      $('#theme-toggle').on('click', function() {
+        const $html = $('html');
+        $html.toggleClass('light');
+
+        const isLight = $html.hasClass('light');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+
+        $(this).find('span').text(isLight ? '☀️' : '🌙');
+      });
+
       // --- Bootstrap ------------------------------------------------------------
+      // Set initial theme state
+      const isLight = $('html').hasClass('light');
+      $('#theme-toggle').find('span').text(isLight ? '☀️' : '🌙');
+
       // Only seed initial data for first-time users (when localStorage has never been initialized)
       const hasBeenInitialized = localStorage.getItem(LS_KEY) !== null;
       if (state.todos.length === 0 && !hasBeenInitialized) {
