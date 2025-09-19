@@ -148,7 +148,8 @@
 
       <section class="mt-6 pt-5 border-t border-border">
         <div class="flex gap-2 flex-wrap">
-          <button class="ghost px-4 py-2 rounded-xl bg-transparent text-muted border border-border-light cursor-pointer transition-all duration-200 hover:bg-accent/10 hover:text-accent hover:border-accent" id="exportBtn" title="Export as JSON">Export</button>
+          <button class="ghost px-4 py-2 rounded-xl bg-transparent text-muted border border-border-light cursor-pointer transition-all duration-200 hover:bg-accent/10 hover:text-accent hover:border-accent" id="exportBtn" title="Export as JSON">Export JSON</button>
+          <button class="ghost px-4 py-2 rounded-xl bg-transparent text-muted border border-border-light cursor-pointer transition-all duration-200 hover:bg-accent/10 hover:text-accent hover:border-accent" id="exportCsvBtn" title="Export as CSV">Export CSV</button>
           <button class="ghost px-4 py-2 rounded-xl bg-transparent text-muted border border-border-light cursor-pointer transition-all duration-200 hover:bg-accent/10 hover:text-accent hover:border-accent" id="importBtn" title="Import from JSON">Import</button>
           <input type="file" id="fileInput" accept="application/json" hidden />
         </div>
@@ -322,6 +323,40 @@
         URL.revokeObjectURL(url);
       }
 
+      function exportCSV() {
+        const headers = ['id', 'title', 'completed', 'createdAt', 'dueAt'];
+
+        const escapeCsvField = (field) => {
+          if (field === null || field === undefined) return '';
+          const str = String(field);
+          if (str.includes(',') || str.includes('"') || str.includes('\\n')) {
+            return `"${str.replace(/"/g, '""')}"`;
+          }
+          return str;
+        };
+
+        const csvRows = [headers.join(',')];
+        state.todos.forEach(todo => {
+          const row = [
+            escapeCsvField(todo.id),
+            escapeCsvField(todo.title),
+            escapeCsvField(todo.completed),
+            escapeCsvField(todo.createdAt),
+            escapeCsvField(todo.dueAt || '') // Add dueAt, default to empty
+          ];
+          csvRows.push(row.join(','));
+        });
+
+        const csvString = csvRows.join('\\n');
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const $a = $('<a>').attr({ href: url, download: 'todos.csv' });
+        $('body').append($a);
+        $a[0].click();
+        $a.remove();
+        URL.revokeObjectURL(url);
+      }
+
       function importJSON(file) {
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -375,6 +410,8 @@
       });
 
       $("#exportBtn").on('click', exportJSON);
+
+      $("#exportCsvBtn").on('click', exportCSV);
       
       $("#importBtn").on('click', function() {
         $("#fileInput").click();
